@@ -44,8 +44,6 @@ public class ResourceServiceImpl extends ServiceImpl<ResourceMapper, Resource> i
         Page<Resource> resourcePage = this.page(page, wrapper);
 
         // 封装 VO
-        Page<ResourcePageResp> voPage = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
-
         List<ResourcePageResp> voList = resourcePage.getRecords().stream().map(r -> ResourcePageResp.builder()
                 .id(r.getId())
                 .type(r.getType())
@@ -56,6 +54,12 @@ public class ResourceServiceImpl extends ServiceImpl<ResourceMapper, Resource> i
                 .longitude(r.getLongitude())
                 .build()).toList();
 
+        // 直接复用 resourcePage 的分页信息
+        Page<ResourcePageResp> voPage = new Page<>();
+        voPage.setCurrent(resourcePage.getCurrent());
+        voPage.setSize(resourcePage.getSize());
+        voPage.setTotal(resourcePage.getTotal());
+        voPage.setPages(resourcePage.getPages());
         voPage.setRecords(voList);
 
         return voPage;
