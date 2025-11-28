@@ -9,7 +9,7 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/resource")
+@RequestMapping("/resource")
 public class ResourceController {
     @Resource
     private ResourceService resourceService;
