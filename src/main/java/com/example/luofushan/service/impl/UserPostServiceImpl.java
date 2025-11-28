@@ -4,16 +4,21 @@ import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.luofushan.common.exception.LuoFuShanException;
+import com.example.luofushan.dao.entity.PostComment;
 import com.example.luofushan.dao.entity.UserPost;
 import com.example.luofushan.dao.mapper.CheckinLocationMapper;
+import com.example.luofushan.dao.mapper.PostCommentMapper;
 import com.example.luofushan.dao.mapper.UserPostMapper;
+import com.example.luofushan.dto.req.PostCommentReq;
 import com.example.luofushan.dto.req.PostListReq;
 import com.example.luofushan.dto.req.UserPostReq;
+import com.example.luofushan.dto.resp.PostCommentResp;
 import com.example.luofushan.dto.resp.PostListRealResp;
 import com.example.luofushan.dto.resp.PostListResp;
 import com.example.luofushan.dto.resp.UserPostResp;
 import com.example.luofushan.service.UserPostService;
 import jakarta.annotation.Resource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -28,6 +33,9 @@ public class UserPostServiceImpl implements UserPostService {
 
     @Resource
     private CheckinLocationMapper locationMapper;
+
+    @Resource
+    private PostCommentMapper postCommentMapper;
 
     @Override
     public UserPostResp createPost(UserPostReq req) {
@@ -87,7 +95,17 @@ public class UserPostServiceImpl implements UserPostService {
         page.setRecords(realList);
 
         return page;
+    }
 
-
+    @Override
+    public PostCommentResp addComment(PostCommentReq postCommentReq) {
+        PostComment comment = BeanUtil.toBean(postCommentReq, PostComment.class);
+        try {
+            postCommentMapper.insert(comment);
+        }catch (DataIntegrityViolationException e) {
+            e.printStackTrace();
+            throw LuoFuShanException.UserOrPostNotExists();
+        }
+        return BeanUtil.toBean(comment, PostCommentResp.class);
     }
 }

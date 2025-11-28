@@ -2,8 +2,10 @@ package com.example.luofushan.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.luofushan.dto.Result;
+import com.example.luofushan.dto.req.PostCommentReq;
 import com.example.luofushan.dto.req.PostListReq;
 import com.example.luofushan.dto.req.UserPostReq;
+import com.example.luofushan.dto.resp.PostCommentResp;
 import com.example.luofushan.dto.resp.PostListRealResp;
 import com.example.luofushan.dto.resp.UserPostResp;
 import com.example.luofushan.service.UserPostService;
@@ -26,5 +28,11 @@ public class UserPostController {
     public Result<Page<PostListRealResp>> listPosts(PostListReq req) {
         Page<PostListRealResp> page = userPostService.listPosts(req);
         return Result.buildSuccess(page);
+    }
+
+    @PostMapping("/comment")
+    public Result<PostCommentResp> addComment(@RequestBody PostCommentReq req) {
+        return Result.buildSuccess(userPostService.addComment(req));
+
     }
 }

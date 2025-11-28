@@ -25,4 +25,8 @@ public class LuoFuShanException extends RuntimeException {
     public static LuoFuShanException hasNoDistanceInfo() {
         return new LuoFuShanException("没有经纬度信息");
     }
+
+    public static LuoFuShanException UserOrPostNotExists() {
+        return new LuoFuShanException("用户或动态不存在");
+    }
 }
