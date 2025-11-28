@@ -3,6 +3,7 @@ package com.example.luofushan.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.luofushan.common.exception.LuoFuShanException;
 import com.example.luofushan.dao.entity.Resource;
 import com.example.luofushan.dao.mapper.ResourceMapper;
 import com.example.luofushan.dto.req.ResourcePageReq;
@@ -17,8 +18,11 @@ import java.util.List;
 public class ResourceServiceImpl extends ServiceImpl<ResourceMapper, Resource> implements ResourceService {
     @Override
     public String getContent(Long id) {
-
-        return baseMapper.selectById(id).getContentJson();
+         Resource resource = baseMapper.selectById(id);
+         if(resource==null) {
+             throw LuoFuShanException.resourceNotExists();
+         }
+         return resource.getContentJson();
     }
 
     @Override

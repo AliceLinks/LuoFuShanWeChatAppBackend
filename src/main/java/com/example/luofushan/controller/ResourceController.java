@@ -16,8 +16,6 @@ public class ResourceController {
 
     @GetMapping("/content")
     public Result<String> getContentById(@RequestParam("id") Long id) {
-
-        //TODO: 空值判断
         return Result.buildSuccess(resourceService.getContent(id));
     }
 

@@ -2,6 +2,7 @@ package com.example.luofushan.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.luofushan.common.exception.LuoFuShanException;
 import com.example.luofushan.dao.entity.CheckinLocation;
 import com.example.luofushan.dao.entity.UserCheckin;
 import com.example.luofushan.dao.mapper.CheckinLocationMapper;
@@ -68,7 +69,7 @@ public class CheckinServiceImpl implements CheckinService {
         // 1. 校验景点是否存在
         CheckinLocation loc = checkinLocationMapper.selectById(req.getLocationId());
         if (loc == null) {
-            throw new RuntimeException("景点不存在");
+            throw LuoFuShanException.locationNotExists();
         }
 
         // TODO:1.2:校验用户是否存在
@@ -83,7 +84,7 @@ public class CheckinServiceImpl implements CheckinService {
         try {
             userCheckinMapper.insert(uc);
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException("该景点已打卡");
+            throw LuoFuShanException.alreadyHit();
         }
 
         // 3. 景点今日打卡数 + 1

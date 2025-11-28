@@ -28,7 +28,6 @@ public class UserPostServiceImpl extends ServiceImpl<UserPostMapper, UserPost>
 
         this.save(post);
 
-
         return BeanUtil.toBean(post, UserPostResp.class);
     }
 }
