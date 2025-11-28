@@ -91,4 +91,21 @@
         AND r.type = #{type}
     </select>
 
+    <select id="selectResourceContent" resultType="com.example.luofushan.dto.resp.NearbyResourceContentResp">
+        SELECT
+        r.id,
+        r.name,
+        r.cover_img AS coverImg,
+        r.hot_score AS hotScore,
+        r.created_at AS createdAt,
+        r.content_json AS content,
+        IF(#{userLat} IS NOT NULL AND #{userLng} IS NOT NULL,
+        ST_Distance_Sphere(POINT(r.longitude, r.latitude), POINT(#{userLng}, #{userLat})),
+        NULL
+        ) AS distance
+        FROM resource r
+        WHERE r.delflag = 0
+        AND r.id = #{id}
+    </select>
+
 </mapper>

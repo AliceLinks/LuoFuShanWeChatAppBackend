@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.luofushan.common.exception.LuoFuShanException;
 import com.example.luofushan.dao.entity.Resource;
 import com.example.luofushan.dao.mapper.ResourceMapper;
+import com.example.luofushan.dto.req.NearbyResourceContentReq;
 import com.example.luofushan.dto.req.NearbyResourceReq;
 import com.example.luofushan.dto.req.ResourcePageReq;
+import com.example.luofushan.dto.resp.NearbyResourceContentResp;
 import com.example.luofushan.dto.resp.NearbyResourceResp;
 import com.example.luofushan.dto.resp.ResourcePageResp;
 import com.example.luofushan.service.ResourceService;
@@ -32,13 +34,7 @@ public class ResourceServiceImpl extends ServiceImpl<ResourceMapper, Resource> i
 
         // 排序？？ 按热度
         String sortBy = "hot";
-        List<ResourcePageResp> records = baseMapper.selectResourcePage(
-                req.getType(),
-                req.getFuzzy(),
-                sortBy,
-                offset,
-                req.getSize()
-        );
+        List<ResourcePageResp> records = baseMapper.selectResourcePage(req.getType(), req.getFuzzy(), sortBy, offset, req.getSize());
 
         int total = baseMapper.countResource(req.getType(), req.getFuzzy());
 
@@ -64,4 +60,9 @@ public class ResourceServiceImpl extends ServiceImpl<ResourceMapper, Resource> i
         return result;
     }
 
+    @Override
+    public NearbyResourceContentResp getResourceContent(NearbyResourceContentReq req) {
+        NearbyResourceContentResp resp = baseMapper.selectResourceContent(req.getId(), req.getLatitude(), req.getLongitude());
+        return resp;
+    }
 }

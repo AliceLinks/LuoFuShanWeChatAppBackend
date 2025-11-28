@@ -2,8 +2,10 @@ package com.example.luofushan.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.luofushan.dto.Result;
+import com.example.luofushan.dto.req.NearbyResourceContentReq;
 import com.example.luofushan.dto.req.NearbyResourceReq;
 import com.example.luofushan.dto.req.ResourcePageReq;
+import com.example.luofushan.dto.resp.NearbyResourceContentResp;
 import com.example.luofushan.dto.resp.NearbyResourceResp;
 import com.example.luofushan.dto.resp.ResourcePageResp;
 import com.example.luofushan.service.ResourceService;
@@ -33,5 +35,10 @@ public class ResourceController {
     @GetMapping("/nearby")
     public Result<Page<NearbyResourceResp>> nearbyResources(NearbyResourceReq req) {
         return Result.buildSuccess(resourceService.listNearbyResources(req));
+    }
+
+    @GetMapping("/nearby/content")
+    public Result<NearbyResourceContentResp> getNearbyContent(NearbyResourceContentReq req) {
+        return Result.buildSuccess(resourceService.getResourceContent(req));
     }
 }
