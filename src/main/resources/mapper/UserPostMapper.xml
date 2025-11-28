@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.luofushan.dao.mapper.UserPostMapper">
+
+    <select id="selectPosts" resultMap="PostListRespResultMap">
+        SELECT
+        up.id,
+        up.content AS title,
+        cl.name AS location_name,
+        up.images,
+        cl.latitude,
+        cl.longitude,
+        IF(
+            #{latitude} IS NOT NULL AND #{longitude} IS NOT NULL,
+            ST_Distance_Sphere(
+            POINT(cl.longitude, cl.latitude),
+            POINT(#{longitude}, #{latitude})
+            ),
+            NULL
+        ) AS distance,
+        up.like_count,
+        up.comment_count,
+        up.created_at AS post_time
+        FROM user_post up
+        LEFT JOIN checkin_location cl ON up.location_id = cl.id
+        WHERE up.delflag = 0
+        <if test="fuzzy != null and fuzzy != ''">
+            AND up.content LIKE CONCAT('%', #{fuzzy}, '%')
+        </if>
+        <choose>
+            <when test="sortBy == 'distance'">
+                ORDER BY distance ASC
+            </when>
+            <when test="sortBy == 'like'">
+                ORDER BY up.like_count DESC
+            </when>
+            <when test="sortBy == 'comment'">
+                ORDER BY up.comment_count DESC
+            </when>
+            <otherwise>
+                ORDER BY up.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <resultMap id="PostListRespResultMap" type="com.example.luofushan.dto.resp.PostListResp">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="locationName" column="location_name"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="imagesStr" column="images"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="postTime" column="post_time"/>
+        <result property="distance" column="distance"/>
+    </resultMap>
+
+    <select id="countPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM user_post up
+        LEFT JOIN checkin_location cl ON up.location_id = cl.id
+        WHERE up.delflag = 0
+        <if test="fuzzy != null and fuzzy != ''">
+            AND up.content LIKE CONCAT('%', #{fuzzy}, '%')
+        </if>
+    </select>
+
+</mapper>

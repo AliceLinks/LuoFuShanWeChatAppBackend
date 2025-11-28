@@ -21,4 +21,8 @@ public class LuoFuShanException extends RuntimeException {
     public static LuoFuShanException alreadyHit() {
         return new LuoFuShanException("用户已在该打卡点打过卡");
     }
+
+    public static LuoFuShanException hasNoDistanceInfo() {
+        return new LuoFuShanException("没有经纬度信息");
+    }
 }

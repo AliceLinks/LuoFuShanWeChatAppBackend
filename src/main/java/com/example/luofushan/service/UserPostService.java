@@ -1,11 +1,14 @@
 package com.example.luofushan.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.luofushan.dao.entity.UserPost;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.luofushan.dto.req.PostListReq;
 import com.example.luofushan.dto.req.UserPostReq;
+import com.example.luofushan.dto.resp.PostListRealResp;
 import com.example.luofushan.dto.resp.UserPostResp;
 
-public interface UserPostService extends IService<UserPost> {
+public interface UserPostService {
 
     UserPostResp createPost(UserPostReq req);
+
+    Page<PostListRealResp> listPosts(PostListReq req);
 }
