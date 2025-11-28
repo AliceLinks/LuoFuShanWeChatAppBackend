@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.luofushan.dao.mapper.PostCommentMapper">
+
+    <!-- 查询评论列表 -->
+    <select id="selectCommentList" resultType="com.example.luofushan.dto.resp.PostCommentListResp">
+        SELECT
+        c.id AS commentId,
+        c.user_id AS userId,
+        u.nickname,
+        u.avatar_url AS avatarUrl,
+        c.content,
+        c.created_at AS createdAt
+        FROM post_comment c
+        LEFT JOIN user u ON c.user_id = u.id
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 查询评论总数 -->
+    <select id="countByPostId" resultType="int">
+        SELECT COUNT(*)
+        FROM post_comment
+        WHERE post_id = #{postId}
+    </select>
+
+</mapper>

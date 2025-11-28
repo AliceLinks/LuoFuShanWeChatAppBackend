@@ -9,13 +9,11 @@ import com.example.luofushan.dao.entity.UserPost;
 import com.example.luofushan.dao.mapper.CheckinLocationMapper;
 import com.example.luofushan.dao.mapper.PostCommentMapper;
 import com.example.luofushan.dao.mapper.UserPostMapper;
+import com.example.luofushan.dto.req.PostCommentListReq;
 import com.example.luofushan.dto.req.PostCommentReq;
 import com.example.luofushan.dto.req.PostListReq;
 import com.example.luofushan.dto.req.UserPostReq;
-import com.example.luofushan.dto.resp.PostCommentResp;
-import com.example.luofushan.dto.resp.PostListRealResp;
-import com.example.luofushan.dto.resp.PostListResp;
-import com.example.luofushan.dto.resp.UserPostResp;
+import com.example.luofushan.dto.resp.*;
 import com.example.luofushan.service.UserPostService;
 import jakarta.annotation.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,13 +25,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserPostServiceImpl implements UserPostService {
-
     @Resource
     private UserPostMapper userPostMapper;
-
     @Resource
     private CheckinLocationMapper locationMapper;
-
     @Resource
     private PostCommentMapper postCommentMapper;
 
@@ -107,5 +102,18 @@ public class UserPostServiceImpl implements UserPostService {
             throw LuoFuShanException.UserOrPostNotExists();
         }
         return BeanUtil.toBean(comment, PostCommentResp.class);
+    }
+
+    @Override
+    public Page<PostCommentListResp> listComments(PostCommentListReq req) {
+        req.initDefault();
+        int offset = (req.getPage() - 1) * req.getSize();
+        List<PostCommentListResp> records =  postCommentMapper.selectCommentList(req.getPostId(), offset, req.getSize());
+        int total = postCommentMapper.countByPostId(req.getPostId());
+
+        Page<PostCommentListResp> page = new Page<>(req.getPage(), req.getSize(), total);
+        page.setRecords(records);
+        page.setPages((total + req.getSize() - 1) / req.getSize());
+        return page;
     }
 }
