@@ -13,14 +13,14 @@ public class BaseDO {
      * 创建时间
      * 在执行 INSERT 操作时，自动给该字段赋值
      */
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "created_at",fill = FieldFill.INSERT)
     private Date createdAt;
 
     /**
      * 修改时间
      * 在执行 INSERT UPDATE 操作时，自动给该字段赋值
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "updated_at",fill = FieldFill.INSERT_UPDATE)
     private Date updatedAt;
 
     /**
