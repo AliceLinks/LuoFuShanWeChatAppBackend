@@ -3,11 +3,25 @@ package com.example.luofushan.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.luofushan.dao.entity.Resource;
 import com.example.luofushan.dto.resp.NearbyResourceResp;
+import com.example.luofushan.dto.resp.ResourcePageResp;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 public interface ResourceMapper extends BaseMapper<Resource> {
+
+    List<ResourcePageResp> selectResourcePage(
+            @Param("type") String type,
+            @Param("fuzzy") String fuzzy,
+            @Param("sortBy") String sortBy,
+            @Param("offset") int offset,
+            @Param("size") int size
+    );
+
+    int countResource(
+            @Param("type") String type,
+            @Param("fuzzy") String fuzzy
+    );
 
     List<NearbyResourceResp> selectNearbyResources(
             @Param("type") String type,

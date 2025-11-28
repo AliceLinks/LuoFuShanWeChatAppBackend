@@ -5,6 +5,51 @@
 
 <mapper namespace="com.example.luofushan.dao.mapper.ResourceMapper">
 
+    <select id="selectResourcePage" resultType="com.example.luofushan.dto.resp.ResourcePageResp">
+        SELECT
+        id,
+        type,
+        name,
+        cover_img AS coverImg,
+        hot_score AS hotScore,
+        latitude,
+        longitude,
+        created_at AS createdAt
+        FROM resource
+        WHERE delflag = 0
+        <if test="type != null and type != 'ALL'">
+            AND type = #{type}
+        </if>
+        <if test="fuzzy != null and fuzzy != ''">
+            AND name LIKE CONCAT('%', #{fuzzy}, '%')
+        </if>
+        <choose>
+            <when test="sortBy == 'distance'">
+                <!-- distance 排序在前端或 SQL 加入计算字段，如果有用户经纬度 -->
+                ORDER BY latitude, longitude
+            </when>
+            <when test="sortBy == 'hot'">
+                ORDER BY hot_score DESC
+            </when>
+            <otherwise>
+                ORDER BY created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countResource" resultType="int">
+        SELECT COUNT(*)
+        FROM resource
+        WHERE delflag = 0
+        <if test="type != null and type != 'ALL'">
+            AND type = #{type}
+        </if>
+        <if test="fuzzy != null and fuzzy != ''">
+            AND name LIKE CONCAT('%', #{fuzzy}, '%')
+        </if>
+    </select>
+
     <!-- 查询附近资源 -->
     <select id="selectNearbyResources" resultType="com.example.luofushan.dto.resp.NearbyResourceResp">
         SELECT
