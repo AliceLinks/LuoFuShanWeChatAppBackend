@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class UserCheckinHistoryReq {
-    private Long userId;
     private Integer page;
     private Integer size;
 

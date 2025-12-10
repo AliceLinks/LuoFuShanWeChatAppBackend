@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class PostCommentListResp {
-    private Long commentId;
+    private Long id;
     private Long userId;
     private String nickname;
     private String avatarUrl;

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class UserCheckinHistoryResp {
+    private Long id;
     private Long locationId;
     private String locationName;
     private LocalDateTime checkinTime;

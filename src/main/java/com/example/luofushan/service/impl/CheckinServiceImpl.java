@@ -39,6 +39,7 @@ public class CheckinServiceImpl implements CheckinService {
         List<CheckinLocation> locations = checkinLocationMapper.selectList(wrapper);
 
         return locations.stream().map(loc -> CheckinLocationListResp.builder()
+                .id(loc.getId())
                 .name(loc.getName())
                 .latitude(loc.getLatitude())
                 .longitude(loc.getLongitude())
@@ -52,8 +53,8 @@ public class CheckinServiceImpl implements CheckinService {
     public Page<UserCheckinHistoryResp> getUserHistory(UserCheckinHistoryReq req) {
         req.initDefault();
         int offset = (req.getPage() - 1) * req.getSize();
-        List<UserCheckinHistoryResp> records = userCheckinMapper.selectHistoryByUserId(req.getUserId(), offset, req.getSize());
-        int total = userCheckinMapper.countByUserId(req.getUserId());
+        List<UserCheckinHistoryResp> records = userCheckinMapper.selectHistoryByUserId(UserContext.getUserId(), offset, req.getSize());
+        int total = userCheckinMapper.countByUserId(UserContext.getUserId());
 
         Page<UserCheckinHistoryResp> page = new Page<>(req.getPage(), req.getSize());
         page.setRecords(records);
@@ -94,7 +95,7 @@ public class CheckinServiceImpl implements CheckinService {
 
         // 5. 构造返回对象
         return UserCheckinResp.builder()
-                .checkinId(uc.getId())
+                .id(uc.getId())
                 .locationId(loc.getId())
                 .locationName(loc.getName())
                 .checkinTime(req.getCheckinTime())
