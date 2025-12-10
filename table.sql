@@ -9,6 +9,8 @@ DROP TABLE IF EXISTS checkin_location;
 DROP TABLE IF EXISTS user_token;
 DROP TABLE IF EXISTS resource;
 DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS mall_item;
+DROP TABLE IF EXISTS user_exchange;
 
 CREATE TABLE user (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID',
@@ -134,6 +136,39 @@ CREATE TABLE post_comment (
     INDEX idx_comment_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- =====================================
+-- 兑换商城奖品表 mall_item
+-- =====================================
+
+CREATE TABLE mall_item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '奖品ID',
+    name VARCHAR(64) NOT NULL COMMENT '奖品名称',
+    points_cost INT NOT NULL COMMENT '所需积分',
+    cover_img VARCHAR(255) NULL COMMENT '奖品图片链接',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    delflag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '逻辑删除标志'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =====================================
+-- 用户兑换记录表 user_exchange
+-- =====================================
+
+CREATE TABLE user_exchange (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '兑换记录ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    item_id BIGINT NOT NULL COMMENT '兑换的奖品ID',
+    code VARCHAR(64) NOT NULL UNIQUE COMMENT '兑换卡密（兑换凭证）',
+    is_redeemed TINYINT NOT NULL DEFAULT 0 COMMENT '是否已兑换（0否/1是）',
+    place_name VARCHAR(64) NULL COMMENT '兑换地点名称',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '兑换时间',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    delflag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '逻辑删除标志',
+    CONSTRAINT fk_exchange_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+    CONSTRAINT fk_exchange_item FOREIGN KEY (item_id) REFERENCES mall_item(id) ON DELETE CASCADE,
+    INDEX idx_exchange_user (user_id),
+    INDEX idx_exchange_item (item_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 插入测试用户
 INSERT INTO user (open_id, nickname, avatar_url, points, weekly_checkin_count) VALUES
@@ -163,26 +198,19 @@ INSERT INTO checkin_location (name, latitude, longitude, score, today_has_checki
 ('黄龙风景区', 32.7547, 103.8223, 9, 0, 'https://example.com/images/huanglong.jpg'),      -- id = 6（新增）
 ('都江堰景区', 31.0021, 103.6052, 7, 0, 'https://example.com/images/dujiangyan.jpg');      -- id = 7（新增）
 
+-- 插入商城奖品
+INSERT INTO mall_item (name, points_cost, cover_img) VALUES
+('景点门票', 50, 'https://example.com/images/ticket.jpg'),
+('酒店住宿', 200, 'https://example.com/images/hotel_reward.jpg'),
+('火锅代金券', 100, 'https://example.com/images/hotpot_voucher.jpg'),
+('茶叶礼盒', 150, 'https://example.com/images/tea_gift_box.jpg'),
+('大佛纪念品', 80, 'https://example.com/images/buddha_memorial.jpg');
 
-
-
-
--- 插入打卡记录
--- 用户1打卡记录
-INSERT INTO user_checkin (user_id, location_id, checkin_time) VALUES
-(1, 1, '2025-11-27 10:00:00'),
-(1, 2, '2025-11-26 15:30:00'),
-(1, 3, '2025-11-25 12:00:00');
-
--- 用户2打卡记录
-INSERT INTO user_checkin (user_id, location_id, checkin_time) VALUES
-(2, 1, '2025-11-27 09:30:00'),
-(2, 5, '2025-11-26 11:00:00'),
-(2, 6, '2025-11-25 14:00:00');   -- 新增的黄龙风景区
-
--- 用户3打卡记录
-INSERT INTO user_checkin (user_id, location_id, checkin_time) VALUES
-(3, 4, '2025-11-27 08:00:00'),
-(3, 7, '2025-11-26 17:20:00'),   -- 新增的都江堰
-(3, 3, '2025-11-25 19:45:00');
+-- 插入兑换记录
+INSERT INTO user_exchange (user_id, item_id, code, is_redeemed, place_name) VALUES
+(1, 1, 'CODE1234567890', 0, '九寨沟景区兑换处'),
+(1, 3, 'CODE0987654321', 1, '成都火锅店'),
+(2, 2, 'CODE1122334455', 0, '锦江宾馆前台'),
+(3, 4, 'CODE2233445566', 1, '成都茶叶店'),
+(3, 5, 'CODE3344556677', 0, '乐山大佛景区商店');
 

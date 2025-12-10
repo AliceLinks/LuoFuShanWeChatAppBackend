@@ -14,7 +14,7 @@ public class WebConfig {
         FilterRegistrationBean<Filter> reg = new FilterRegistrationBean<>();
         reg.setFilter(tokenFilter);
         //reg.addUrlPatterns("/*"); 
-        reg.addUrlPatterns("/post/*", "/checkin/*"); 
+        reg.addUrlPatterns("/post/*", "/checkin/*","/user/*"); 
         reg.setOrder(1);
         return reg;
     }
