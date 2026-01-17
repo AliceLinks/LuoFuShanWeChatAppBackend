@@ -1,15 +1,21 @@
 package com.example.luofushan.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.luofushan.common.exception.LuoFuShanException;
 import com.example.luofushan.dao.entity.AdminConfig;
 import com.example.luofushan.dao.entity.AdminToken;
+import com.example.luofushan.dao.entity.Resource;
 import com.example.luofushan.dao.mapper.AdminConfigMapper;
 import com.example.luofushan.dao.mapper.AdminTokenMapper;
+import com.example.luofushan.dao.mapper.ResourceMapper;
 import com.example.luofushan.dto.req.AdminPasswordUpdateReq;
+import com.example.luofushan.dto.req.AdminSaveResourceReq;
 import com.example.luofushan.dto.req.AdminUnlockReq;
+import com.example.luofushan.dto.resp.AdminSaveResourceResp;
 import com.example.luofushan.dto.resp.AdminUnlockResp;
 import com.example.luofushan.service.AdminService;
+import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -17,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,6 +32,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminConfigMapper adminConfigMapper;
     private final AdminTokenMapper adminTokenMapper;
+    private final ResourceMapper resourceMapper;
 
     @Override
     public AdminUnlockResp unlock(AdminUnlockReq req) {
@@ -100,4 +108,41 @@ public class AdminServiceImpl implements AdminService {
         //修改密码后清空所有已有的管理端 token
         adminTokenMapper.delete(null);
     }
+
+    @Override
+    public AdminSaveResourceResp saveResource(AdminSaveResourceReq req) {
+        List<String> types = List.of("景点", "住宿", "餐饮", "商家");
+        if(StringUtil.isNullOrEmpty(req.getName()) || StringUtil.isNullOrEmpty(req.getType())) {
+            throw LuoFuShanException.adminFail("名称或类型为空");
+        }
+        if(!types.contains(req.getType())) {
+            throw LuoFuShanException.adminFail("资源类型不为：景点/住宿/餐饮/商家");
+        }
+        Resource resource;
+        // 插入
+        if(req.getId() == null) {
+            resource = BeanUtil.toBean(req, Resource.class);
+            resourceMapper.insert(resource);
+
+        }
+        // 更新
+        else {
+            LambdaQueryWrapper<Resource> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Resource::getDelflag, 0)
+                    .eq(Resource::getId, req.getId());
+            resource = resourceMapper.selectOne(wrapper);
+            if(resource==null) throw LuoFuShanException.resourceNotExists();
+            if(req.getLatitude()!=null) resource.setLatitude(req.getLatitude());
+            if(req.getLongitude()!=null) resource.setLongitude(req.getLongitude());
+            if(req.getContentJson()!=null) resource.setContentJson(req.getContentJson());
+            if(req.getName()!=null) resource.setName(req.getName());
+            if(req.getCoverImg()!=null) resource.setCoverImg(req.getCoverImg());
+            if(req.getHotScore()!=null) resource.setHotScore(req.getHotScore());
+            if(req.getType()!=null) resource.setType(req.getType());
+            resourceMapper.updateById(resource);
+        }
+        return BeanUtil.toBean(resource, AdminSaveResourceResp.class);
+    }
+
+
 }

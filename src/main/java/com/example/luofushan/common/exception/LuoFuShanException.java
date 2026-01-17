@@ -45,4 +45,6 @@ public class LuoFuShanException extends RuntimeException {
     public static LuoFuShanException fileUploadFailed(String msg) {
         return new LuoFuShanException(msg);
     }
+
+    public static LuoFuShanException adminFail(String msg) {return new LuoFuShanException(msg);}
 }
