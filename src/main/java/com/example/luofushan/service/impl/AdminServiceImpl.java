@@ -5,13 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.luofushan.common.exception.LuoFuShanException;
 import com.example.luofushan.dao.entity.AdminConfig;
 import com.example.luofushan.dao.entity.AdminToken;
+import com.example.luofushan.dao.entity.CheckinLocation;
 import com.example.luofushan.dao.entity.Resource;
 import com.example.luofushan.dao.mapper.AdminConfigMapper;
 import com.example.luofushan.dao.mapper.AdminTokenMapper;
+import com.example.luofushan.dao.mapper.CheckinLocationMapper;
 import com.example.luofushan.dao.mapper.ResourceMapper;
+import com.example.luofushan.dto.req.AdminSaveCheckinLocationReq;
 import com.example.luofushan.dto.req.AdminPasswordUpdateReq;
 import com.example.luofushan.dto.req.AdminSaveResourceReq;
 import com.example.luofushan.dto.req.AdminUnlockReq;
+import com.example.luofushan.dto.resp.AdminSaveCheckinLocationResp;
 import com.example.luofushan.dto.resp.AdminSaveResourceResp;
 import com.example.luofushan.dto.resp.AdminUnlockResp;
 import com.example.luofushan.service.AdminService;
@@ -33,6 +37,7 @@ public class AdminServiceImpl implements AdminService {
     private final AdminConfigMapper adminConfigMapper;
     private final AdminTokenMapper adminTokenMapper;
     private final ResourceMapper resourceMapper;
+    private final CheckinLocationMapper checkinLocationMapper;
 
     @Override
     public AdminUnlockResp unlock(AdminUnlockReq req) {
@@ -152,6 +157,43 @@ public class AdminServiceImpl implements AdminService {
         }
         resource.setDelflag(1);
         resourceMapper.updateById(resource);
+        return "删除成功";
+    }
+
+    @Override
+    public AdminSaveCheckinLocationResp saveCheckinLocation(AdminSaveCheckinLocationReq req) {
+        CheckinLocation checkinLocation;
+        // 插入
+        if(req.getId() == null) {
+            checkinLocation = BeanUtil.toBean(req, CheckinLocation.class);
+            checkinLocation.setTodayHasCheckin(0L);
+            checkinLocationMapper.insert(checkinLocation);
+        }
+        // 更新
+        else {
+            LambdaQueryWrapper<CheckinLocation> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(CheckinLocation::getDelflag, 0)
+                    .eq(CheckinLocation::getId, req.getId());
+            checkinLocation = checkinLocationMapper.selectOne(wrapper);
+            if(checkinLocation==null) throw LuoFuShanException.checkinLocationNotExists();
+            if(req.getLatitude()!=null) checkinLocation.setLatitude(req.getLatitude());
+            if(req.getLongitude()!=null) checkinLocation.setLongitude(req.getLongitude());
+            if(req.getName()!=null) checkinLocation.setName(req.getName());
+            if(req.getCoverImg()!=null) checkinLocation.setCoverImg(req.getCoverImg());
+            if(req.getScore()!=null) checkinLocation.setScore(req.getScore());
+            checkinLocationMapper.updateById(checkinLocation);
+        }
+        return BeanUtil.toBean(checkinLocation, AdminSaveCheckinLocationResp.class);
+    }
+
+    @Override
+    public String deleteCheckinLocation(Long id) {
+        CheckinLocation checkinLocation = checkinLocationMapper.selectById(id);
+        if(checkinLocation==null) {
+            throw LuoFuShanException.checkinLocationNotExists();
+        }
+        checkinLocation.setDelflag(1);
+        checkinLocationMapper.updateById(checkinLocation);
         return "删除成功";
     }
 }

@@ -1,14 +1,16 @@
 package com.example.luofushan.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.luofushan.dto.Result;
-import com.example.luofushan.dto.req.AdminPasswordUpdateReq;
-import com.example.luofushan.dto.req.AdminSaveResourceReq;
-import com.example.luofushan.dto.req.AdminUnlockReq;
-import com.example.luofushan.dto.resp.AdminSaveResourceResp;
-import com.example.luofushan.dto.resp.AdminUnlockResp;
+import com.example.luofushan.dto.req.*;
+import com.example.luofushan.dto.resp.*;
 import com.example.luofushan.service.AdminService;
+import com.example.luofushan.service.CheckinService;
+import com.example.luofushan.service.ResourceService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -16,6 +18,10 @@ public class AdminController {
 
     @Resource
     private AdminService adminService;
+    @Resource
+    private ResourceService resourceService;
+    @Resource
+    private CheckinService checkinService;
 
     @PostMapping("/unlock")
     public Result<AdminUnlockResp> unlock(@RequestBody AdminUnlockReq req) {
@@ -29,7 +35,7 @@ public class AdminController {
     }
 
     @PostMapping("/resource/save")
-    public Result<AdminSaveResourceResp> saveResourceReq(@RequestBody AdminSaveResourceReq req) {
+    public Result<AdminSaveResourceResp> saveResource(@RequestBody AdminSaveResourceReq req) {
         return Result.buildSuccess(adminService.saveResource(req));
     }
 
@@ -37,4 +43,27 @@ public class AdminController {
     public Result<String> deleteResource(@RequestParam Long id) {
         return Result.buildSuccess(adminService.deleteResource(id));
     }
+
+    @GetMapping("/resource/list")
+    public Result<Page<ResourcePageResp>> list(ResourcePageReq req) {
+        Page<ResourcePageResp> result = resourceService.queryPage(req);
+        return Result.buildSuccess(result);
+    }
+
+    @PostMapping
+    public Result<AdminSaveCheckinLocationResp> saveCheckinLocation(@RequestBody AdminSaveCheckinLocationReq req) {
+        return Result.buildSuccess(adminService.saveCheckinLocation(req));
+    }
+
+    @PostMapping("/checkin/location/delete")
+    public Result<String> deleteCheckinLocation(@RequestParam Long id) {
+        return Result.buildSuccess(adminService.deleteCheckinLocation(id));
+    }
+
+    @GetMapping("/checkin/location/list")
+    public Result<List<CheckinLocationListResp>> getAllLocations() {
+        List<CheckinLocationListResp> locations = checkinService.getAllLocations();
+        return Result.buildSuccess(locations);
+    }
+
 }

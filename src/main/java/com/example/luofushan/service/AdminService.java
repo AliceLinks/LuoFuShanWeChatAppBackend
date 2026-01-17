@@ -1,8 +1,10 @@
 package com.example.luofushan.service;
 
+import com.example.luofushan.dto.req.AdminSaveCheckinLocationReq;
 import com.example.luofushan.dto.req.AdminPasswordUpdateReq;
 import com.example.luofushan.dto.req.AdminSaveResourceReq;
 import com.example.luofushan.dto.req.AdminUnlockReq;
+import com.example.luofushan.dto.resp.AdminSaveCheckinLocationResp;
 import com.example.luofushan.dto.resp.AdminSaveResourceResp;
 import com.example.luofushan.dto.resp.AdminUnlockResp;
 
@@ -15,4 +17,9 @@ public interface AdminService {
     AdminSaveResourceResp saveResource(AdminSaveResourceReq req);
 
     String deleteResource(Long id);
+
+    AdminSaveCheckinLocationResp saveCheckinLocation(AdminSaveCheckinLocationReq req);
+
+    String deleteCheckinLocation(Long id);
+
 }
