@@ -1,11 +1,16 @@
 package com.example.luofushan.dto.resp;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class PostListResp {
     private Long id;
@@ -16,9 +21,8 @@ public class PostListResp {
 
     private Long locationId;
     private String locationName;
-    private String imagesStr;
 
-//    private List<String> images; // 真正要返回给前端
+    private List<String> images;
     private Double latitude;
     private Double longitude;
     private Double distance;
