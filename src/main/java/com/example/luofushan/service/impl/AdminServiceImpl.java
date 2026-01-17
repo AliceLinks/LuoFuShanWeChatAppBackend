@@ -144,5 +144,14 @@ public class AdminServiceImpl implements AdminService {
         return BeanUtil.toBean(resource, AdminSaveResourceResp.class);
     }
 
-
+    @Override
+    public String deleteResource(Long id) {
+        Resource resource = resourceMapper.selectById(id);
+        if(resource==null) {
+            throw LuoFuShanException.resourceNotExists();
+        }
+        resource.setDelflag(1);
+        resourceMapper.updateById(resource);
+        return "删除成功";
+    }
 }

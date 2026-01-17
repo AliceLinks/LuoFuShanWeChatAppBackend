@@ -8,10 +8,7 @@ import com.example.luofushan.dto.resp.AdminSaveResourceResp;
 import com.example.luofushan.dto.resp.AdminUnlockResp;
 import com.example.luofushan.service.AdminService;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin")
@@ -31,8 +28,13 @@ public class AdminController {
         return Result.buildSuccess(null);
     }
 
-    @PostMapping("/admin/resource/save")
+    @PostMapping("/resource/save")
     public Result<AdminSaveResourceResp> saveResourceReq(@RequestBody AdminSaveResourceReq req) {
         return Result.buildSuccess(adminService.saveResource(req));
+    }
+
+    @PostMapping("/resource/delete")
+    public Result<String> deleteResource(@RequestParam Long id) {
+        return Result.buildSuccess(adminService.deleteResource(id));
     }
 }

@@ -13,4 +13,6 @@ public interface AdminService {
     void updatePassword(AdminPasswordUpdateReq req);
 
     AdminSaveResourceResp saveResource(AdminSaveResourceReq req);
+
+    String deleteResource(Long id);
 }
