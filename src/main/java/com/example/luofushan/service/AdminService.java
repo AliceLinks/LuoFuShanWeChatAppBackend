@@ -1,10 +1,8 @@
 package com.example.luofushan.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.luofushan.dto.req.*;
-import com.example.luofushan.dto.resp.AdminCreateMerchantResp;
-import com.example.luofushan.dto.resp.AdminSaveCheckinLocationResp;
-import com.example.luofushan.dto.resp.AdminSaveResourceResp;
-import com.example.luofushan.dto.resp.AdminUnlockResp;
+import com.example.luofushan.dto.resp.*;
 
 public interface AdminService {
 
@@ -21,5 +19,7 @@ public interface AdminService {
     String deleteCheckinLocation(Long id);
 
     AdminCreateMerchantResp createMerchant(AdminCreateMerchantReq req);
+
+    Page<AdminMerchantListResp> listMerchant(AdminMerchantListReq req);
 
 }

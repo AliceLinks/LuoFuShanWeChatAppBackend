@@ -70,4 +70,9 @@ public class AdminController {
     public Result<AdminCreateMerchantResp> createMerchant(@RequestBody AdminCreateMerchantReq req) {
         return Result.buildSuccess(adminService.createMerchant(req));
     }
+
+    @GetMapping("/merchant/list")
+    public Result<Page<AdminMerchantListResp>> getMerchatlist(AdminMerchantListReq req) {
+        return Result.buildSuccess(adminService.listMerchant(req));
+    }
 }

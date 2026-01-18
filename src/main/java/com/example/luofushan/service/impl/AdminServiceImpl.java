@@ -2,14 +2,12 @@ package com.example.luofushan.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.luofushan.common.exception.LuoFuShanException;
 import com.example.luofushan.dao.entity.*;
 import com.example.luofushan.dao.mapper.*;
 import com.example.luofushan.dto.req.*;
-import com.example.luofushan.dto.resp.AdminCreateMerchantResp;
-import com.example.luofushan.dto.resp.AdminSaveCheckinLocationResp;
-import com.example.luofushan.dto.resp.AdminSaveResourceResp;
-import com.example.luofushan.dto.resp.AdminUnlockResp;
+import com.example.luofushan.dto.resp.*;
 import com.example.luofushan.service.AdminService;
 import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
@@ -214,7 +212,22 @@ public class AdminServiceImpl implements AdminService {
 
         req.setPassword(DigestUtils.md5DigestAsHex(req.getPassword().getBytes(StandardCharsets.UTF_8)));
         Merchant merchant = BeanUtil.toBean(req, Merchant.class);
+        merchant.setStatus(1);
         merchantMapper.insert(merchant);
         return BeanUtil.toBean(merchant, AdminCreateMerchantResp.class);
+    }
+
+    @Override
+    public Page<AdminMerchantListResp> listMerchant(AdminMerchantListReq req) {
+        req.initDefault();
+        int offset = (req.getPage() - 1) * req.getSize();
+        List<AdminMerchantListResp> records = merchantMapper.selectMerchantPage(req.getType(), req.getFuzzy(), offset, req.getSize(), req.getStatus());
+        int total = merchantMapper.countMerchant(req.getType(), req.getFuzzy(), req.getStatus());
+
+        Page<AdminMerchantListResp> page = new Page<>(req.getPage(),req.getSize(),total);
+        page.setPages((total + req.getSize() - 1) / req.getSize());
+        page.setRecords(records);
+
+        return page;
     }
 }
