@@ -95,4 +95,9 @@ public class AdminController {
     public Result<String> updateMerchantStatus(@RequestBody AdminUpdateMerchantStatusReq req) {
         return Result.buildSuccess(adminService.updateMerchantStatus(req));
     }
+
+    @PostMapping("/merchant/delete")
+    public Result<String> deleteMerchant(@RequestParam Long id) {
+        return Result.buildSuccess(adminService.deleteMerchant(id));
+    }
 }

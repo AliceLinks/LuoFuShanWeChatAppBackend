@@ -29,4 +29,6 @@ public interface AdminService {
     String updateMerchantPassword(AdminUpdateMerchantPasswordReq req);
 
     String updateMerchantStatus(AdminUpdateMerchantStatusReq req);
+
+    String deleteMerchant(Long id);
 }

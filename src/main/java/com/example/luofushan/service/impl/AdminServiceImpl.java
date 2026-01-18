@@ -308,4 +308,15 @@ public class AdminServiceImpl implements AdminService {
         merchantMapper.updateById(merchant);
         return "修改成功";
     }
+
+    @Override
+    public String deleteMerchant(Long id) {
+        Merchant merchant = merchantMapper.selectById(id);
+        if(merchant==null) {
+            throw LuoFuShanException.adminFail("商家不存在");
+        }
+        merchant.setDelflag(1);
+        merchantMapper.updateById(merchant);
+        return "删除成功";
+    }
 }
