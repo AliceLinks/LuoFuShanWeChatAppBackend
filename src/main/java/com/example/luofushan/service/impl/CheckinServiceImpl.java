@@ -303,6 +303,7 @@ public class CheckinServiceImpl implements CheckinService {
                     .userId(userId)
                     .nickname(user.getNickname())
                     .avatarUrl(user.getAvatarUrl())
+                    .type(req.getType())
                     .checkinCount(count)
                     .rank(rank++)
                     .build());
