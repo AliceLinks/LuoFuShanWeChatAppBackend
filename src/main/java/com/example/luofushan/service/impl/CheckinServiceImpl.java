@@ -12,10 +12,7 @@ import com.example.luofushan.dao.mapper.UserMapper;
 import com.example.luofushan.dto.req.CheckinRankPageReq;
 import com.example.luofushan.dto.req.UserCheckinHistoryReq;
 import com.example.luofushan.dto.req.UserCheckinReq;
-import com.example.luofushan.dto.resp.CheckinLocationListResp;
-import com.example.luofushan.dto.resp.CheckinRankPageResp;
-import com.example.luofushan.dto.resp.UserCheckinHistoryResp;
-import com.example.luofushan.dto.resp.UserCheckinResp;
+import com.example.luofushan.dto.resp.*;
 import com.example.luofushan.security.UserContext;
 import com.example.luofushan.service.CheckinService;
 import com.example.luofushan.util.TimeUtil;
@@ -315,5 +312,55 @@ public class CheckinServiceImpl implements CheckinService {
         Page<CheckinRankPageResp> resp = new Page<>(page, size, total);
         resp.setRecords(records);
         return resp;
+    }
+
+    @Override
+    public CheckinRankMeResp getRankMe(String type) {
+        Long userId = UserContext.getUserId();
+        if(userId==null) throw new LuoFuShanException("未登录");
+
+        List<String> types = List.of("day", "week", "month");
+        if (StringUtil.isNullOrEmpty(type) || !types.contains(type)) {
+            throw new LuoFuShanException("类型错误: day/week/month");
+        }
+
+        // 1. 选择排行榜 key 前缀
+        String rankKeyPrefix;
+        switch (type) {
+            case "day" -> rankKeyPrefix = USER_CHECKIN_RANK_DAY_KEY;
+            case "week" -> rankKeyPrefix = USER_CHECKIN_RANK_WEEK_KEY;
+            case "month" -> rankKeyPrefix = USER_CHECKIN_RANK_MONTH_KEY;
+            default -> throw new LuoFuShanException("类型错误");
+        }
+
+        // 2. 生成 key
+        LocalDateTime now = LocalDateTime.now();
+        String suffix = TimeUtil.formatByPrefix(rankKeyPrefix, now);
+        String rankKey = rankKeyPrefix + suffix;
+
+        String member = String.valueOf(userId);
+
+        // 3. 查排名（0-based）
+        Long rank = stringRedisTemplate.opsForZSet()
+                .reverseRank(rankKey, member);
+
+        // 没上榜 idea提示不可达，实则是有可能的
+        if (rank == null) {
+            return CheckinRankMeResp.builder()
+                    .rank(null)        // 转成 1-based
+                    .checkinCount(0L)
+                    .type(type)
+                    .build();
+        }
+
+        // 4. 查分数（打卡次数）
+        Double score = stringRedisTemplate.opsForZSet()
+                .score(rankKey, member);
+
+        return CheckinRankMeResp.builder()
+                .rank(rank + 1)        // 转成 1-based
+                .checkinCount(score == null ? 0L : score.longValue())
+                .type(type)
+                .build();
     }
 }

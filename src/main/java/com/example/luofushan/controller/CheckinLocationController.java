@@ -5,10 +5,7 @@ import com.example.luofushan.dto.Result;
 import com.example.luofushan.dto.req.CheckinRankPageReq;
 import com.example.luofushan.dto.req.UserCheckinHistoryReq;
 import com.example.luofushan.dto.req.UserCheckinReq;
-import com.example.luofushan.dto.resp.CheckinLocationListResp;
-import com.example.luofushan.dto.resp.CheckinRankPageResp;
-import com.example.luofushan.dto.resp.UserCheckinHistoryResp;
-import com.example.luofushan.dto.resp.UserCheckinResp;
+import com.example.luofushan.dto.resp.*;
 import com.example.luofushan.service.CheckinService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -42,5 +39,10 @@ public class CheckinLocationController {
     @GetMapping("/rank")
     public Result<Page<CheckinRankPageResp>> getRank(CheckinRankPageReq req) {
         return Result.buildSuccess(checkinService.getRank(req));
+    }
+
+    @GetMapping("/rank/me")
+    public Result<CheckinRankMeResp> getRankMe(@RequestParam String type) {
+        return Result.buildSuccess(checkinService.getRankMe(type));
     }
 }
