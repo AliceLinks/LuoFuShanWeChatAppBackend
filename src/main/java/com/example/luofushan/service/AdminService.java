@@ -27,4 +27,6 @@ public interface AdminService {
     AdminUpdateMerchantResp updateMerchant(AdminUpdateMerchantReq req);
 
     String updateMerchantPassword(AdminUpdateMerchantPasswordReq req);
+
+    String updateMerchantStatus(AdminUpdateMerchantStatusReq req);
 }

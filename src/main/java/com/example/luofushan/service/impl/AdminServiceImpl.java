@@ -289,4 +289,23 @@ public class AdminServiceImpl implements AdminService {
         merchantMapper.updateById(merchant);
         return "修改成功";
     }
+
+    @Override
+    public String updateMerchantStatus(AdminUpdateMerchantStatusReq req) {
+        if(req.getId()==null || req.getStatus()==null) {
+            throw LuoFuShanException.adminFail("商家id为空或新状态为空");
+        }
+        if(req.getStatus()!=1 && req.getStatus()!=0) {
+            throw LuoFuShanException.adminFail("状态必须是0或1");
+        }
+
+        LambdaQueryWrapper<Merchant> merchantLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        merchantLambdaQueryWrapper.eq(Merchant::getDelflag, 0)
+                .eq(Merchant::getId, req.getId());
+        Merchant merchant = merchantMapper.selectOne(merchantLambdaQueryWrapper);
+        if(merchant==null) throw LuoFuShanException.adminFail("商家不存在");
+        merchant.setStatus(req.getStatus());
+        merchantMapper.updateById(merchant);
+        return "修改成功";
+    }
 }

@@ -90,4 +90,9 @@ public class AdminController {
     public Result<String> updateMerchantPassword(@RequestBody AdminUpdateMerchantPasswordReq req) {
         return Result.buildSuccess(adminService.updateMerchantPassword(req));
     }
+
+    @PostMapping("/merchant/status/update")
+    public Result<String> updateMerchantStatus(@RequestBody AdminUpdateMerchantStatusReq req) {
+        return Result.buildSuccess(adminService.updateMerchantStatus(req));
+    }
 }
