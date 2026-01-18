@@ -25,4 +25,6 @@ public interface AdminService {
     AdminMerchantDetailResp getMerchantDetail(Long id);
 
     AdminUpdateMerchantResp updateMerchant(AdminUpdateMerchantReq req);
+
+    String updateMerchantPassword(AdminUpdateMerchantPasswordReq req);
 }

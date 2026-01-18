@@ -273,4 +273,20 @@ public class AdminServiceImpl implements AdminService {
 
         return BeanUtil.toBean(merchant, AdminUpdateMerchantResp.class);
     }
+
+    @Override
+    public String updateMerchantPassword(AdminUpdateMerchantPasswordReq req) {
+        if(req.getId()==null || StringUtil.isNullOrEmpty(req.getNewPassword())) {
+            throw LuoFuShanException.adminFail("商家id为空或新密码为空");
+        }
+
+        LambdaQueryWrapper<Merchant> merchantLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        merchantLambdaQueryWrapper.eq(Merchant::getDelflag, 0)
+                .eq(Merchant::getId, req.getId());
+        Merchant merchant = merchantMapper.selectOne(merchantLambdaQueryWrapper);
+        if(merchant==null) throw LuoFuShanException.adminFail("商家不存在");
+        merchant.setPassword(DigestUtils.md5DigestAsHex(req.getNewPassword().getBytes(StandardCharsets.UTF_8)));
+        merchantMapper.updateById(merchant);
+        return "修改成功";
+    }
 }

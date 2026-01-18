@@ -85,4 +85,9 @@ public class AdminController {
     public Result<AdminUpdateMerchantResp> updateMerchant(@RequestBody AdminUpdateMerchantReq req) {
         return Result.buildSuccess(adminService.updateMerchant(req));
     }
+
+    @PostMapping("/merchant/password/reset")
+    public Result<String> updateMerchantPassword(@RequestBody AdminUpdateMerchantPasswordReq req) {
+        return Result.buildSuccess(adminService.updateMerchantPassword(req));
+    }
 }
