@@ -230,4 +230,25 @@ public class AdminServiceImpl implements AdminService {
 
         return page;
     }
+
+    @Override
+    public AdminMerchantDetailResp getMerchantDetail(Long id) {
+        LambdaQueryWrapper<Merchant> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Merchant::getDelflag, 0)
+                .eq(Merchant::getId, id);
+        Merchant merchant = merchantMapper.selectOne(wrapper);
+        if(merchant==null) throw LuoFuShanException.adminFail("商家不存在");
+
+        if(merchant.getResourceId()==null) throw LuoFuShanException.adminFail("商家所持有的资源不存在");
+        LambdaQueryWrapper<Resource> resourceLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        resourceLambdaQueryWrapper.eq(Resource::getDelflag, 0)
+                .eq(Resource::getId, merchant.getResourceId());
+        Resource resource = resourceMapper.selectOne(resourceLambdaQueryWrapper);
+        if(resource==null) throw LuoFuShanException.adminFail("商家所持有的资源不存在");
+
+        AdminMerchantDetailResp resp = BeanUtil.toBean(merchant, AdminMerchantDetailResp.class);
+        resp.setResourceName(resource.getName());
+
+        return resp;
+    }
 }

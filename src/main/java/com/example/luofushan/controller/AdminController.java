@@ -75,4 +75,9 @@ public class AdminController {
     public Result<Page<AdminMerchantListResp>> getMerchatlist(AdminMerchantListReq req) {
         return Result.buildSuccess(adminService.listMerchant(req));
     }
+
+    @GetMapping("/merchant/detail")
+    public Result<AdminMerchantDetailResp> getMerchantDetail(@RequestParam Long id) {
+        return Result.buildSuccess(adminService.getMerchantDetail(id));
+    }
 }
