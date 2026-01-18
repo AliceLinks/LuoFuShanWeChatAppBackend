@@ -9,19 +9,21 @@ import com.example.luofushan.dao.entity.UserPost;
 import com.example.luofushan.dao.mapper.CheckinLocationMapper;
 import com.example.luofushan.dao.mapper.PostCommentMapper;
 import com.example.luofushan.dao.mapper.UserPostMapper;
-import com.example.luofushan.dto.req.PostCommentListReq;
-import com.example.luofushan.dto.req.PostCommentReq;
-import com.example.luofushan.dto.req.PostListReq;
-import com.example.luofushan.dto.req.UserPostReq;
+import com.example.luofushan.dto.req.*;
 import com.example.luofushan.dto.resp.*;
 import com.example.luofushan.security.UserContext;
 import com.example.luofushan.service.UserPostService;
+import io.netty.util.internal.StringUtil;
 import jakarta.annotation.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.example.luofushan.common.constant.RedisCacheConstant.POST_LIKE_KEY;
 
 @Service
 public class UserPostServiceImpl implements UserPostService {
@@ -31,6 +33,8 @@ public class UserPostServiceImpl implements UserPostService {
     private CheckinLocationMapper locationMapper;
     @Resource
     private PostCommentMapper postCommentMapper;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public UserPostResp createPost(UserPostReq req) {
@@ -102,5 +106,48 @@ public class UserPostServiceImpl implements UserPostService {
         page.setRecords(records);
         page.setPages((total + req.getSize() - 1) / req.getSize());
         return page;
+    }
+
+    @Override
+    public PostLikeResp likePost(PostLikeReq req) {
+        if(req.getPostId()==null || StringUtil.isNullOrEmpty(req.getAction())) {
+            throw new LuoFuShanException("postId或action为空");
+        }
+        if(!req.getAction().equals("like") && !req.getAction().equals("unlike")){
+            throw new LuoFuShanException("action必须为like或unlike");
+        }
+        LambdaQueryWrapper<UserPost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserPost::getDelflag, 0)
+                .eq(UserPost::getId, req.getPostId());
+        UserPost userPost = userPostMapper.selectOne(wrapper);
+        if(userPost==null) throw new LuoFuShanException("动态不存在");
+
+        Long uid = UserContext.getUserId();
+        Long pid = req.getPostId();
+        String key = POST_LIKE_KEY + uid + "+" + pid;
+
+        if(req.getAction().equals("like")) {
+            if(!stringRedisTemplate.hasKey(key)) {
+                stringRedisTemplate.opsForValue().set(key, "", 30, TimeUnit.DAYS);
+                userPost.setLikeCount(userPost.getLikeCount() + 1);
+                userPostMapper.updateById(userPost);
+            }
+            return PostLikeResp.builder()
+                    .liked(true)
+                    .postId(pid)
+                    .likeCount(userPost.getLikeCount())
+                    .build();
+        } else {
+            if(stringRedisTemplate.hasKey(key)) {
+                stringRedisTemplate.delete(key);
+                userPost.setLikeCount(userPost.getLikeCount() - 1);
+                userPostMapper.updateById(userPost);
+            }
+            return PostLikeResp.builder()
+                    .liked(false)
+                    .postId(pid)
+                    .likeCount(userPost.getLikeCount())
+                    .build();
+        }
     }
 }
