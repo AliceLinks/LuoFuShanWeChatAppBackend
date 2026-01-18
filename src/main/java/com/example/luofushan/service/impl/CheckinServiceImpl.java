@@ -9,22 +9,29 @@ import com.example.luofushan.dao.entity.UserCheckin;
 import com.example.luofushan.dao.mapper.CheckinLocationMapper;
 import com.example.luofushan.dao.mapper.UserCheckinMapper;
 import com.example.luofushan.dao.mapper.UserMapper;
+import com.example.luofushan.dto.req.CheckinRankPageReq;
 import com.example.luofushan.dto.req.UserCheckinHistoryReq;
 import com.example.luofushan.dto.req.UserCheckinReq;
 import com.example.luofushan.dto.resp.CheckinLocationListResp;
+import com.example.luofushan.dto.resp.CheckinRankPageResp;
 import com.example.luofushan.dto.resp.UserCheckinHistoryResp;
 import com.example.luofushan.dto.resp.UserCheckinResp;
 import com.example.luofushan.security.UserContext;
 import com.example.luofushan.service.CheckinService;
 import com.example.luofushan.util.TimeUtil;
+import io.netty.util.internal.StringUtil;
 import jakarta.annotation.Resource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -156,9 +163,9 @@ public class CheckinServiceImpl implements CheckinService {
         LocalDateTime now = LocalDateTime.now();
 
         List<CheckinKeyConfig> configs = List.of(
-                new CheckinKeyConfig(USER_CHECKIN_DAY_KEY, TimeUtil::remainSecondsToday),
-                new CheckinKeyConfig(USER_CHECKIN_WEEK_KEY, TimeUtil::remainSecondsThisWeek),
-                new CheckinKeyConfig(USER_CHECKIN_MONTH_KEY, TimeUtil::remainSecondsThisMonth)
+                new CheckinKeyConfig(USER_CHECKIN_DAY_KEY, USER_CHECKIN_RANK_DAY_KEY,  TimeUtil::remainSecondsToday),
+                new CheckinKeyConfig(USER_CHECKIN_WEEK_KEY, USER_CHECKIN_RANK_WEEK_KEY, TimeUtil::remainSecondsThisWeek),
+                new CheckinKeyConfig(USER_CHECKIN_MONTH_KEY, USER_CHECKIN_RANK_MONTH_KEY, TimeUtil::remainSecondsThisMonth)
         );
 
         for (CheckinKeyConfig config : configs) {
@@ -168,10 +175,16 @@ public class CheckinServiceImpl implements CheckinService {
             Long count = stringRedisTemplate.opsForValue().increment(key);
 
             // 第一次创建 key 时才设置过期时间
+            long ttl = config.ttlFunc.apply(now);
             if (count != null && count == 1L) {
-                long ttl = config.ttlFunc.apply(now);
                 stringRedisTemplate.expire(key, ttl, TimeUnit.SECONDS);
             }
+
+            String timeSuffix = TimeUtil.formatByPrefix(config.rankKeyPrefix, now);
+            String rankKey = config.rankKeyPrefix + timeSuffix;
+            String member = String.valueOf(userId);
+            stringRedisTemplate.opsForZSet().add(rankKey, member, count);
+            stringRedisTemplate.expire(rankKey, ttl, TimeUnit.SECONDS);
         }
     }
 
@@ -211,10 +224,16 @@ public class CheckinServiceImpl implements CheckinService {
         return Long.parseLong(stringRedisTemplate.opsForValue().get(key));
     }
 
-
     private static class CheckinKeyConfig {
         String keyPrefix;
+        String rankKeyPrefix;
         Function<LocalDateTime, Long> ttlFunc;
+
+        CheckinKeyConfig(String keyPrefix, String rankKeyPrefix, Function<LocalDateTime, Long> ttlFunc) {
+            this.keyPrefix = keyPrefix;
+            this.rankKeyPrefix = rankKeyPrefix;
+            this.ttlFunc = ttlFunc;
+        }
 
         CheckinKeyConfig(String keyPrefix, Function<LocalDateTime, Long> ttlFunc) {
             this.keyPrefix = keyPrefix;
@@ -222,4 +241,78 @@ public class CheckinServiceImpl implements CheckinService {
         }
     }
 
+    @Override
+    public Page<CheckinRankPageResp> getRank(CheckinRankPageReq req) {
+        req.initDefault();
+        List<String> types = List.of("day", "week", "month");
+        if(StringUtil.isNullOrEmpty(req.getType()) || !types.contains(req.getType())) {
+            throw new LuoFuShanException("类型错误: day/week/month");
+        }
+
+        // 1. 选择排行榜 key 前缀
+        String rankKeyPrefix;
+        switch (req.getType()) {
+            case "day" -> rankKeyPrefix = USER_CHECKIN_RANK_DAY_KEY;
+            case "week" -> rankKeyPrefix = USER_CHECKIN_RANK_WEEK_KEY;
+            case "month" -> rankKeyPrefix = USER_CHECKIN_RANK_MONTH_KEY;
+            default -> throw new LuoFuShanException("类型错误");
+        }
+
+        // 2. 生成时间后缀
+        LocalDateTime now = LocalDateTime.now();
+        String timeSuffix = TimeUtil.formatByPrefix(rankKeyPrefix, now);
+        String rankKey = rankKeyPrefix + timeSuffix;
+
+        // 3. 计算分页
+        int page = req.getPage();
+        int size = req.getSize();
+        int start = (page - 1) * size;
+        int end = start + size - 1;
+
+        // 4. 查 ZSet
+        Set<ZSetOperations.TypedTuple<String>> tuples =
+                stringRedisTemplate.opsForZSet()
+                        .reverseRangeWithScores(rankKey, start, end);
+
+        if (tuples == null || tuples.isEmpty()) {
+            return new Page<>(page, size, 0L);
+        }
+
+        // 5. 收集 userId
+        List<Long> userIds = tuples.stream()
+                .map(t -> Long.valueOf(t.getValue()))
+                .toList();
+
+        // 6. 批量查用户
+        List<User> users = userMapper.selectBatchIds(userIds);
+        Map<Long, User> userMap = users.stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        // 7. 组装返回
+        List<CheckinRankPageResp> records = new ArrayList<>();
+        long rank = start + 1;
+
+        for (ZSetOperations.TypedTuple<String> t : tuples) {
+            Long userId = Long.valueOf(t.getValue());
+            Long count = t.getScore().longValue();
+            User user = userMap.get(userId);
+
+            if (user == null) continue;
+
+            records.add(CheckinRankPageResp.builder()
+                    .userId(userId)
+                    .nickname(user.getNickname())
+                    .avatarUrl(user.getAvatarUrl())
+                    .checkinCount(count)
+                    .rank(rank++)
+                    .build());
+        }
+
+        // 8. 总数
+        Long total = stringRedisTemplate.opsForZSet().zCard(rankKey);
+
+        Page<CheckinRankPageResp> resp = new Page<>(page, size, total);
+        resp.setRecords(records);
+        return resp;
+    }
 }

@@ -11,4 +11,10 @@ public class RedisCacheConstant {
     public static final String USER_CHECKIN_WEEK_KEY = "luofushan:user_checkin:week:";
 
     public static final String USER_CHECKIN_MONTH_KEY = "luofushan:user_checkin:month:";
+
+    public static final String USER_CHECKIN_RANK_DAY_KEY = "luofushan:user_checkin_rank:day:";
+
+    public static final String USER_CHECKIN_RANK_WEEK_KEY = "luofushan:user_checkin_rank:week:";
+
+    public static final String USER_CHECKIN_RANK_MONTH_KEY = "luofushan:user_checkin_rank:month:";
 }
