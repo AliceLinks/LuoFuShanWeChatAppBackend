@@ -2,6 +2,8 @@ package com.example.luofushan.dto.resp;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class AdminMerchantListResp {
     private Long id;
@@ -14,4 +16,5 @@ public class AdminMerchantListResp {
     private Long resourceId;
 
     private Integer status;
+    private LocalDateTime createAt;
 }

@@ -13,7 +13,7 @@
         name,
         resource_id AS resourceId,
         status,
-        created_at AS createTime
+        created_at AS createAt
         FROM merchant
         WHERE delflag = 0
         <if test="type != null and type != 'ALL'">
